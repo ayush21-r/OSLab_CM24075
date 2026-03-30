@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Animated background layers -->
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar glass">
+        <div class="logo">
+            <span class="icon">⚡</span> CPU <span class="highlight">Visualizer</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="active">Simulator</a>
+            <a href="#">Algorithms</a>
+            <a href="#">About</a>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- Left Panel: Input & Queue -->
+        <section class="panel glass left-panel">
+            <div class="panel-header">
+                <h2>Add Process</h2>
+            </div>
+            <div class="input-form">
+                <div class="input-group">
+                    <label>Process ID</label>
+                    <input type="text" id="pidInput" placeholder="e.g., P1" autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <label>Arrival Time</label>
+                    <input type="number" id="atInput" placeholder="0" min="0" autocomplete="off" />
+                </div>
+                <div class="input-group">
+                    <label>Burst Time</label>
+                    <input type="number" id="btInput" placeholder="1" min="1" autocomplete="off" />
+                </div>
+                <button class="btn btn-primary w-full mt-2" id="addBtn">
+                    <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Process
+                </button>
+            </div>
+
+            <div class="queue-section">
+                <h3>Process Queue <span class="badge" id="queueCount">0</span></h3>
+                <div class="table-container">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Arrival</th>
+                                <th>Burst</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inputTableBody">
+                            <tr class="empty-state">
+                                <td colspan="4">No processes added yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="btn btn-danger w-full mt-3" id="clearBtn">Clear All</button>
+            </div>
+        </section>
+
+        <!-- Right Panel: Controls, Gantt Chart, Stats -->
+        <section class="panel right-panel">
+            <!-- Algorithm Selection Controls -->
+            <div class="controls glass flex-row">
+                <div class="control-group">
+                    <label>Algorithm</label>
+                    <select id="algoSelect" class="glass-input">
+                        <option value="SJF">Shortest Job First (SJF)</option>
+                        <option value="RR">Round Robin (RR)</option>
+                    </select>
+                </div>
+
+                <div class="control-group" id="sjfTypeGroup">
+                    <label>Mode</label>
+                    <select id="sjfType" class="glass-input">
+                        <option value="non-preemptive">Non-Preemptive</option>
+                        <option value="preemptive">Preemptive (SRTF)</option>
+                    </select>
+                </div>
+
+                <div class="control-group hidden" id="tqGroup">
+                    <label>Time Quantum</label>
+                    <input type="number" id="timeQuantum" class="glass-input" value="2" min="1" />
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-run" id="runBtn">
+                        🚀 Run Simulation
+                    </button>
+                    <button class="btn btn-secondary" id="resetBtn">
+                        Reset Output
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div class="output-section glass">
+                <h3>Gantt Chart Execution</h3>
+                <div class="gantt-wrapper">
+                    <div class="gantt-chart" id="ganttChart">
+                        <div class="gantt-empty">Run simulation to visualize execution</div>
+                    </div>
+                    <div class="gantt-timeline" id="ganttTimeline"></div>
+                </div>
+            </div>
+
+            <!-- Results Data -->
+            <div class="stats-section">
+                <div class="summary-cards">
+                    <div class="stat-card glass">
+                        <div class="stat-title">Avg Waiting Time</div>
+                        <div class="stat-value" id="avgWt">0.00 <span class="unit">ms</span></div>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-title">Avg Turnaround Time</div>
+                        <div class="stat-value" id="avgTat">0.00 <span class="unit">ms</span></div>
+                    </div>
+                </div>
+
+                <div class="table-container glass mt-3">
+                    <table class="glass-table results-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>AT</th>
+                                <th>BT</th>
+                                <th>Completion</th>
+                                <th>Turnaround</th>
+                                <th>Waiting</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outputTableBody">
+                            <tr class="empty-state">
+                                <td colspan="6">Awaiting simulation results...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div id="algoModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2>Scheduling Algorithms</h2>
+                <button class="btn-icon close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Shortest Job First (SJF)</h3>
+                <p>SJF selects the waiting process with the smallest execution time to execute next. It can be non-preemptive or preemptive (Shortest Remaining Time First).</p>
+                <h3>Round Robin (RR)</h3>
+                <p>RR assigns a fixed time quantum per process in a cyclic order, ensuring fairness and starvation-free execution.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2>About</h2>
+                <button class="btn-icon close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>CPU Scheduling Visualizer</strong></p>
+                <p>An interactive tool designed to help understand operating system process scheduling algorithms through real-time visualization.</p>
+                <p>Created with a modern glassmorphism UI, detailed timeline plotting, and responsive design.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Context -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
